@@ -212,7 +212,9 @@ const Canvas = (props) => {
 
       for (let i = 0; i < 60; i++) {
         draw_arrow(context, 80*vec1[0]*i, -80*vec1[1]*i, 80*vec1[0]*(i+1), -80*vec1[1]*(i+1), "rgb(246, 194, 138)");
+        draw_arrow(context, -80*vec1[0]*i, 80*vec1[1]*i, -80*vec1[0]*(i+1), 80*vec1[1]*(i+1), "rgb(246, 194, 138)");
         draw_arrow(context, 80*vec2[0]*i, -80*vec2[1]*i, 80*vec2[0]*(i+1), -80*vec2[1]*(i+1), "rgb(246, 194, 138)");
+        draw_arrow(context, -80*vec2[0]*i, 80*vec2[1]*i, -80*vec2[0]*(i+1), 80*vec2[1]*(i+1), "rgb(246, 194, 138)");
       }
     } catch (error) {
     } finally {
