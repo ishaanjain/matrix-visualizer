@@ -198,9 +198,6 @@ const Canvas = (props) => {
       let [vec1, vec2] = transpose(vectors)
       if (typeof vec1[0] !== 'number') { return; }
 
-      if (vec1[0] < 0) vec1 = vec1.map(x => x * -1)
-      if (vec2[0] < 0) vec2 = vec2.map(x => x * -1)
-
       vec1 = vec1.map(x => {
         x = x/norm(vec1)
         return x + (x*val1 - x)*time
