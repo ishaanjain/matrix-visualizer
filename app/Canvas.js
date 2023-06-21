@@ -12,7 +12,6 @@ const Canvas = (props) => {
   const imageRef = useRef(null)
   const [img_src, set_img_src] = useState("default.png");
   const [image_loaded, set_image_loaded] = useState(false);
-  const [show_image, set_show_image] = useState(true)
 
   // hidden canvas (not displayed in DOM) used for image preprocessing
   const image_canvas_ref = useRef(null);
@@ -34,6 +33,9 @@ const Canvas = (props) => {
     [0, 1, 0],
     [0, 0, 0]
   ]);
+
+  const [show_image, set_show_image] = useState(true)
+  const [show_eigenvectors, set_show_eigenvectors] = useState(true)
 
   const updateImage = files => {
     if (files.length === 0) return;
@@ -188,8 +190,9 @@ const Canvas = (props) => {
     context.save();
     context.translate(originX, originY);
 
-    // draw the eigenvectors
     try {
+      // draw the eigenvectors
+      if (!show_eigenvectors) { return; }
       const {values, vectors} = eigs([[a, c], [b, d]])
       let [val1, val2] = values
       let [vec1, vec2] = transpose(vectors)
@@ -207,8 +210,10 @@ const Canvas = (props) => {
         return x + (x*val2 - x)*time
       })
 
-      draw_arrow(context, 0, 0, 80*vec1[0], -80*vec1[1], "rgb(246, 194, 138)");
-      draw_arrow(context, 0, 0, 80*vec2[0], -80*vec2[1], "rgb(246, 194, 138)");
+      for (let i = 0; i < 60; i++) {
+        draw_arrow(context, 80*vec1[0]*i, -80*vec1[1]*i, 80*vec1[0]*(i+1), -80*vec1[1]*(i+1), "rgb(246, 194, 138)");
+        draw_arrow(context, 80*vec2[0]*i, -80*vec2[1]*i, 80*vec2[0]*(i+1), -80*vec2[1]*(i+1), "rgb(246, 194, 138)");
+      }
     } catch (error) {
     } finally {
       // draw the x and y unit vectors
@@ -217,7 +222,7 @@ const Canvas = (props) => {
 
       context.restore();
     }
-  }, [show_image, image_processed, time, a, b, c, d]);
+  }, [image_processed, time, a, b, c, d, show_image, show_eigenvectors]);
 
   return (
     <div>
@@ -228,6 +233,7 @@ const Canvas = (props) => {
       <br />
       <input type="file" accept="image/*" onChange={e => updateImage(e.target.files)}></input>
       <button onClick={() => set_show_image(!show_image)}> {show_image ? 'Hide image' : 'Show image'} </button>
+      <button onClick={() => set_show_eigenvectors(!show_eigenvectors)}> {show_eigenvectors ? 'Hide eigenvectors' : 'Show eigenvectors'} </button>
       <br />
       <input type="range" min="0" max="1" step="0.01" value={time} onChange={e => set_time(e.target.value)}></input>
       <br />
