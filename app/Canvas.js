@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useRef, useEffect, useState } from "react";
-import Image from 'next/image';
+import { eigs, norm, transpose } from 'mathjs'
 
 const Canvas = (props) => {
 
@@ -12,6 +12,7 @@ const Canvas = (props) => {
   const imageRef = useRef(null)
   const [img_src, set_img_src] = useState("default.png");
   const [image_loaded, set_image_loaded] = useState(false);
+  const [show_image, set_show_image] = useState(true)
 
   // hidden canvas (not displayed in DOM) used for image preprocessing
   const image_canvas_ref = useRef(null);
@@ -63,10 +64,11 @@ const Canvas = (props) => {
   };
 
   const linear_transform_random = () => {
-    set_a(Math.random()*4-2);
-    set_b(Math.random()*4-2);
-    set_c(Math.random()*4-2);
-    set_d(Math.random()*4-2);
+    // random number between -2 and 2, rounded to the nearest tenth
+    set_a(Math.round((Math.random()*4-2)*10)/10);
+    set_b(Math.round((Math.random()*4-2)*10)/10);
+    set_c(Math.round((Math.random()*4-2)*10)/10);
+    set_d(Math.round((Math.random()*4-2)*10)/10);
   }
 
   const set_kernel_idx = (new_val, i, j) => {
@@ -178,28 +180,54 @@ const Canvas = (props) => {
     // reference canvas used for image preprocessing (aka convolution)
     const image_canvas = image_canvas_ref.current;
     // draw the image
-    context.drawImage(image_canvas, 0, -image_canvas.height); // img, x, y
+    if (show_image) {
+      context.drawImage(image_canvas, 0, -image_canvas.height); // img, x, y
+    }
     
     context.restore();
     context.save();
     context.translate(originX, originY);
 
-    // draw the x and y unit vectors
-    draw_arrow(context, 0, 0, 80*time_a, 80*time_b, "rgb(151, 187, 110)");
-    draw_arrow(context, 0, 0, -80*time_c, -80*time_d, "rgb(239, 131, 101)");
+    // draw the eigenvectors
+    try {
+      const {values, vectors} = eigs([[a, c], [b, d]])
+      let [val1, val2] = values
+      let [vec1, vec2] = transpose(vectors)
+      if (typeof vec1[0] !== 'number') { return; }
 
-    // console.log(math);
+      if (vec1[0] < 0) vec1 = vec1.map(x => x * -1)
+      if (vec2[0] < 0) vec2 = vec2.map(x => x * -1)
 
-    context.restore();
-  }, [image_processed, time, a, b, c, d]);
+      vec1 = vec1.map(x => {
+        x = x/norm(vec1)
+        return x + (x*val1 - x)*time
+      })
+      vec2 = vec2.map(x => {
+        x = x/norm(vec2)
+        return x + (x*val2 - x)*time
+      })
+
+      draw_arrow(context, 0, 0, 80*vec1[0], -80*vec1[1], "rgb(246, 194, 138)");
+      draw_arrow(context, 0, 0, 80*vec2[0], -80*vec2[1], "rgb(246, 194, 138)");
+    } catch (error) {
+    } finally {
+      // draw the x and y unit vectors
+      draw_arrow(context, 0, 0, 80*time_a, 80*time_b, "rgb(151, 187, 110)");
+      draw_arrow(context, 0, 0, -80*time_c, -80*time_d, "rgb(239, 131, 101)");
+
+      context.restore();
+    }
+  }, [show_image, image_processed, time, a, b, c, d]);
 
   return (
     <div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img hidden src={img_src} ref={imageRef} onLoad={() => set_image_loaded(true)} alt=""/>
       <canvas hidden ref={image_canvas_ref} />
       <canvas ref={canvasRef} width={canvasWidth} height={canvasHeight}/>
       <br />
       <input type="file" accept="image/*" onChange={e => updateImage(e.target.files)}></input>
+      <button onClick={() => set_show_image(!show_image)}> {show_image ? 'Hide image' : 'Show image'} </button>
       <br />
       <input type="range" min="0" max="1" step="0.01" value={time} onChange={e => set_time(e.target.value)}></input>
       <br />
