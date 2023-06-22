@@ -8,6 +8,8 @@ const Canvas = (props) => {
   const canvasRef = useRef(null);
   const canvasWidth = 900;
   const canvasHeight = 900;
+  const originX = 450, originY = 450;
+  const target_radius = 14;
 
   const imageRef = useRef(null)
   const [img_src, set_img_src] = useState("default.png");
@@ -22,9 +24,9 @@ const Canvas = (props) => {
   const [time, set_time] = useState(1);
 
   // linear transform matrix
-  const [a, set_a] = useState(1);
+  const [a, set_a] = useState(1.5);
   const [b, set_b] = useState(0);
-  const [c, set_c] = useState(0);
+  const [c, set_c] = useState(.5);
   const [d, set_d] = useState(1);
 
   // convolution matrix
@@ -36,6 +38,11 @@ const Canvas = (props) => {
 
   const [show_image, set_show_image] = useState(true)
   const [show_eigenvectors, set_show_eigenvectors] = useState(true)
+  
+  const [x_target_selected, set_x_target_selected] = useState(false)
+  const [y_target_selected, set_y_target_selected] = useState(false)
+  const [x_click_offset, set_x_click_offset] = useState(null)
+  const [y_click_offset, set_y_click_offset] = useState(null)
 
   const updateImage = files => {
     if (files.length === 0) return;
@@ -44,7 +51,7 @@ const Canvas = (props) => {
     set_image_processed(false);
   };
 
-  const linear_transform_reset = () => {
+  const linear_transform_identity = () => {
     set_a(1);
     set_b(0);
     set_c(0);
@@ -111,6 +118,53 @@ const Canvas = (props) => {
     ]);
   }
 
+  const handle_mouse_down = event => {
+    const mouse_coords = [event.nativeEvent.offsetX-originX, event.nativeEvent.offsetY-originY]
+    const x_target_coords = [a*80, -b*80]
+    const y_target_coords = [c*80, -d*80]
+
+    // (Δx, Δy) distance between where the mouse was clicked and the x/y target
+    const x_target_click_offset = [mouse_coords[0]-x_target_coords[0], mouse_coords[1]-x_target_coords[1]]
+    const y_target_click_offset = [mouse_coords[0]-y_target_coords[0], mouse_coords[1]-y_target_coords[1]]
+
+    const dist_to_x_target = Math.hypot(...x_target_click_offset)
+    const dist_to_y_target = Math.hypot(...y_target_click_offset)
+
+    if (dist_to_x_target < target_radius && dist_to_y_target > target_radius) {
+      set_x_target_selected(true)
+      set_x_click_offset(x_target_click_offset)
+    } else if (dist_to_x_target > target_radius && dist_to_y_target < target_radius) {
+      set_y_target_selected(true)
+      set_y_click_offset(y_target_click_offset)
+    } else if (dist_to_x_target < target_radius && dist_to_y_target < target_radius) {
+      if (dist_to_x_target < dist_to_y_target) {
+        set_x_target_selected(true)
+        set_x_click_offset(x_target_click_offset)
+      } else {
+        set_y_target_selected(true)
+        set_y_click_offset(y_target_click_offset)
+      }
+    }
+  }
+
+  const handle_mouse_up = () => {
+    set_x_target_selected(false)
+    set_y_target_selected(false)
+  }
+
+  const handle_mouse_move = event => {
+    const mouse_coords = [event.nativeEvent.offsetX-originX, event.nativeEvent.offsetY-originY]
+    if (x_target_selected) {
+      const x_target_coords = [mouse_coords[0]-x_click_offset[0], mouse_coords[1]-x_click_offset[1]]
+      set_a(x_target_coords[0]/80)
+      set_b(-x_target_coords[1]/80)
+    } else if (y_target_selected) {
+      const y_target_coords = [mouse_coords[0]-y_click_offset[0], mouse_coords[1]-y_click_offset[1]]
+      set_c(y_target_coords[0]/80)
+      set_d(-y_target_coords[1]/80)
+    }
+  }
+
   // this effect updates the (hidden) canvas that stores the convolved image
   useEffect(() => {
     if (!image_loaded) return;
@@ -157,8 +211,6 @@ const Canvas = (props) => {
     const time_b = -b*time
     const time_c = -c*time
     const time_d = 1+(d-1)*time
-    // coordinates of the origin
-    const originX = 450, originY = 450;
 
     // clear the canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -193,10 +245,10 @@ const Canvas = (props) => {
     try {
       // draw the eigenvectors
       if (!show_eigenvectors) { return; }
-      const {values, vectors} = eigs([[a, c], [b, d]])
+      const {values, vectors} = eigs([[a, c], [b, d]]) // eigs() throws error if no eigenvectors
       let [val1, val2] = values
       let [vec1, vec2] = transpose(vectors)
-      if (typeof vec1[0] !== 'number') { return; }
+      if (typeof vec1[0] !== 'number') { return; } // check if eigenvectors are real (not imaginary)
 
       vec1 = vec1.map(x => {
         x = x/norm(vec1)
@@ -219,6 +271,10 @@ const Canvas = (props) => {
       draw_arrow(context, 0, 0, 80*time_a, 80*time_b, "rgb(151, 187, 110)");
       draw_arrow(context, 0, 0, -80*time_c, -80*time_d, "rgb(239, 131, 101)");
 
+      // draw the targets that you can drag to change the linear transform matrix
+      draw_target(context, a*80, -b*80, target_radius, "rgb(151, 187, 110)")
+      draw_target(context, c*80, -d*80, target_radius, "rgb(239, 131, 101)")
+
       context.restore();
     }
   }, [image_processed, time, a, b, c, d, show_image, show_eigenvectors]);
@@ -228,7 +284,11 @@ const Canvas = (props) => {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img hidden src={img_src} ref={imageRef} onLoad={() => set_image_loaded(true)} alt=""/>
       <canvas hidden ref={image_canvas_ref} />
-      <canvas ref={canvasRef} width={canvasWidth} height={canvasHeight}/>
+      <canvas 
+        ref={canvasRef} width={canvasWidth} height={canvasHeight}
+        onMouseDown={event => handle_mouse_down(event)} onMouseUp={handle_mouse_up}
+        onMouseMove={event => handle_mouse_move(event)}
+      />
       <br />
       <input type="file" accept="image/*" onChange={e => updateImage(e.target.files)}></input>
       <button onClick={() => set_show_image(!show_image)}> {show_image ? 'Hide image' : 'Show image'} </button>
@@ -236,7 +296,7 @@ const Canvas = (props) => {
       <br />
       <input type="range" min="0" max="1" step="0.01" value={time} onChange={e => set_time(e.target.value)}></input>
       <br />
-      <button onClick={linear_transform_reset}>Reset</button>
+      <button onClick={linear_transform_identity}>Identity</button>
       <button onClick={linear_transform_shear}>Shear</button>
       <button onClick={linear_transform_rotation}>Rotation</button>
       <button onClick={linear_transform_random}>Random</button>
@@ -351,8 +411,8 @@ function draw_foreground_grid(context, transform_context) {
 }
 
 function draw_arrow(context, x0, y0, x1, y1, color) {
-  const width = 6;
-  const head_len = 14;
+  const width = 5;
+  const head_len = 10;
   const head_angle = Math.PI / 7;
   const angle = Math.atan2(y1 - y0, x1 - x0);
 
@@ -376,6 +436,22 @@ function draw_arrow(context, x0, y0, x1, y1, color) {
   context.closePath();
   context.stroke();
   context.fill();
+}
+
+function draw_target(context, x, y, radius, color) {
+  context.beginPath();
+  context.arc(x, y, radius, 0, 2 * Math.PI)
+  context.moveTo(x+7, y)
+  context.lineTo(x+21, y)
+  context.moveTo(x-7, y)
+  context.lineTo(x-21, y)
+  context.moveTo(x, y+7)
+  context.lineTo(x, y+21)
+  context.moveTo(x, y-7)
+  context.lineTo(x, y-21)
+  context.lineWidth = 4;
+  context.strokeStyle = color;
+  context.stroke();
 }
 
 function convolution(imageData, kernel) {
