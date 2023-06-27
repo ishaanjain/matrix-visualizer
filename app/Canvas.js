@@ -264,6 +264,7 @@ const Canvas = (props) => {
         draw_arrow(context, -80*vec2[0]*i, 80*vec2[1]*i, -80*vec2[0]*(i+1), 80*vec2[1]*(i+1), "rgb(246, 194, 138)");
       }
     } catch (error) {
+      // console.log('eigs() threw an error');
     } finally {
       // draw the x and y unit vectors
       draw_arrow(context, 0, 0, 80*time_a, 80*time_b, "rgb(151, 187, 110)");
@@ -282,49 +283,53 @@ const Canvas = (props) => {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img hidden src={img_src} ref={imageRef} onLoad={() => set_image_loaded(true)} alt=""/>
       <canvas hidden ref={image_canvas_ref} />
-      <canvas 
-        ref={canvasRef} width={canvasWidth} height={canvasHeight}
-        onMouseDown={event => handle_mouse_down(event)} onMouseUp={handle_mouse_up}
-        onMouseMove={event => handle_mouse_move(event)}
-      />
-      <br />
-      <input type="file" accept="image/*" onChange={e => updateImage(e.target.files)}></input>
-      <button onClick={() => set_show_image(!show_image)}> {show_image ? 'Hide image' : 'Show image'} </button>
-      <button onClick={() => set_show_eigenvectors(!show_eigenvectors)}> {show_eigenvectors ? 'Hide eigenvectors' : 'Show eigenvectors'} </button>
-      <br />
-      <input type="range" min="0" max="1" step="0.01" value={time} onChange={e => set_time(e.target.value)}></input>
-      <br />
-      <button onClick={linear_transform_identity}>Identity</button>
-      <button onClick={linear_transform_shear}>Shear</button>
-      <button onClick={linear_transform_rotation}>Rotation</button>
-      <button onClick={linear_transform_random}>Random</button>
-      <br />
-      Transform Matrix
-      <br />
-      <input type="number" name="a" value={a} onChange={e => set_a(e.target.value)} ></input>
-      <input type="number" name="c" value={c} onChange={e => set_c(e.target.value)} ></input>
-      <br />
-      <input type="number" name="b" value={b} onChange={e => set_b(e.target.value)} ></input>
-      <input type="number" name="d" value={d} onChange={e => set_d(e.target.value)} ></input>
-      <br />
-      Convolution Matrix
-      <br />
-      <button onClick={convolution_reset}>Reset</button>
-      <button onClick={convolution_sharpen}>Sharpen</button>
-      <button onClick={convolution_box_blur}>Box Blur</button>
-      <br />
-      <input type="number" name="kernel_a" value={kernel[0][0]} onChange={e => set_kernel_idx(e.target.value, 0, 0)} ></input>
-      <input type="number" name="kernel_d" value={kernel[0][1]} onChange={e => set_kernel_idx(e.target.value, 0, 1)} ></input>
-      <input type="number" name="kernel_g" value={kernel[0][2]} onChange={e => set_kernel_idx(e.target.value, 0, 2)} ></input>
-      <br />
-      <input type="number" name="kernel_b" value={kernel[1][0]} onChange={e => set_kernel_idx(e.target.value, 1, 0)} ></input>
-      <input type="number" name="kernel_e" value={kernel[1][1]} onChange={e => set_kernel_idx(e.target.value, 1, 1)} ></input>
-      <input type="number" name="kernel_h" value={kernel[1][2]} onChange={e => set_kernel_idx(e.target.value, 1, 2)} ></input>
-      <br />
-      <input type="number" name="kernel_c" value={kernel[2][0]} onChange={e => set_kernel_idx(e.target.value, 2, 0)} ></input>
-      <input type="number" name="kernel_f" value={kernel[2][1]} onChange={e => set_kernel_idx(e.target.value, 2, 1)} ></input>
-      <input type="number" name="kernel_i" value={kernel[2][2]} onChange={e => set_kernel_idx(e.target.value, 2, 2)} ></input>
-      <br />
+      <div style={{display: 'flex', gap: '10px'}}>
+        <div>
+          <canvas 
+            ref={canvasRef} width={canvasWidth} height={canvasHeight}
+            onMouseDown={event => handle_mouse_down(event)} onMouseUp={handle_mouse_up}
+            onMouseMove={event => handle_mouse_move(event)}
+          />
+          <br />
+          <input type="file" accept="image/*" onChange={e => updateImage(e.target.files)}></input>
+          <button onClick={() => set_show_image(!show_image)}> {show_image ? 'Hide image' : 'Show image'} </button>
+          <button onClick={() => set_show_eigenvectors(!show_eigenvectors)}> {show_eigenvectors ? 'Hide eigenvectors' : 'Show eigenvectors'} </button>
+        </div>
+        <div>
+          <input type="range" min="0" max="1" step="0.01" value={time} onChange={e => set_time(e.target.value)}></input>
+          <br />
+          <button onClick={linear_transform_identity}>Identity</button>
+          <button onClick={linear_transform_shear}>Shear</button>
+          <button onClick={linear_transform_rotation}>Rotation</button>
+          <button onClick={linear_transform_random}>Random</button>
+          <br />
+          Transform Matrix
+          <br />
+          <input type="number" name="a" value={a} onChange={e => set_a(e.target.value)} ></input>
+          <input type="number" name="c" value={c} onChange={e => set_c(e.target.value)} ></input>
+          <br />
+          <input type="number" name="b" value={b} onChange={e => set_b(e.target.value)} ></input>
+          <input type="number" name="d" value={d} onChange={e => set_d(e.target.value)} ></input>
+          <br />
+          Convolution Matrix
+          <br />
+          <button onClick={convolution_reset}>Reset</button>
+          <button onClick={convolution_sharpen}>Sharpen</button>
+          <button onClick={convolution_box_blur}>Box Blur</button>
+          <br />
+          <input type="number" name="kernel_a" value={kernel[0][0]} onChange={e => set_kernel_idx(e.target.value, 0, 0)} ></input>
+          <input type="number" name="kernel_d" value={kernel[0][1]} onChange={e => set_kernel_idx(e.target.value, 0, 1)} ></input>
+          <input type="number" name="kernel_g" value={kernel[0][2]} onChange={e => set_kernel_idx(e.target.value, 0, 2)} ></input>
+          <br />
+          <input type="number" name="kernel_b" value={kernel[1][0]} onChange={e => set_kernel_idx(e.target.value, 1, 0)} ></input>
+          <input type="number" name="kernel_e" value={kernel[1][1]} onChange={e => set_kernel_idx(e.target.value, 1, 1)} ></input>
+          <input type="number" name="kernel_h" value={kernel[1][2]} onChange={e => set_kernel_idx(e.target.value, 1, 2)} ></input>
+          <br />
+          <input type="number" name="kernel_c" value={kernel[2][0]} onChange={e => set_kernel_idx(e.target.value, 2, 0)} ></input>
+          <input type="number" name="kernel_f" value={kernel[2][1]} onChange={e => set_kernel_idx(e.target.value, 2, 1)} ></input>
+          <input type="number" name="kernel_i" value={kernel[2][2]} onChange={e => set_kernel_idx(e.target.value, 2, 2)} ></input>
+        </div>
+      </div>
     </div>
   );
 };
