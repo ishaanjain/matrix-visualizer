@@ -6,7 +6,7 @@ const Canvas = (props) => {
   const canvasRef = useRef(null);
   const canvasWidth = 900;
   const canvasHeight = 900;
-  const originX = 450, originY = 450;
+  const originX = canvasWidth/2, originY = canvasHeight/2;
   const target_radius = 14;
 
   const imageRef = useRef(null)
@@ -57,9 +57,9 @@ const Canvas = (props) => {
   };
 
   const linear_transform_shear = () => {
-    set_a(1);
+    set_a(1.5);
     set_b(0);
-    set_c(1);
+    set_c(.5);
     set_d(1);
   };
 
@@ -276,58 +276,67 @@ const Canvas = (props) => {
 
       context.restore();
     }
-  }, [image_processed, time, a, b, c, d, show_image, show_eigenvectors]);
+  }, [image_processed, time, a, b, c, d, originX, originY, show_image, show_eigenvectors]);
 
   return (
-    <div>
+    <div className="bg-gradient-to-r from-gray-100 to-gray-300 min-h-screen flex justify-center items-center flex-wrap-reverse gap-8 p-5">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img hidden src={img_src} ref={imageRef} onLoad={() => set_image_loaded(true)} alt=""/>
-      <canvas hidden ref={image_canvas_ref} />
-      <div style={{display: 'flex', gap: '10px'}}>
-        <div>
-          <canvas 
-            ref={canvasRef} width={canvasWidth} height={canvasHeight}
-            onMouseDown={event => handle_mouse_down(event)} onMouseUp={handle_mouse_up}
-            onMouseMove={event => handle_mouse_move(event)}
-          />
-          <br />
-          <input type="file" accept="image/*" onChange={e => updateImage(e.target.files)}></input>
-          <button onClick={() => set_show_image(!show_image)}> {show_image ? 'Hide image' : 'Show image'} </button>
-          <button onClick={() => set_show_eigenvectors(!show_eigenvectors)}> {show_eigenvectors ? 'Hide eigenvectors' : 'Show eigenvectors'} </button>
+      <canvas hidden ref={image_canvas_ref}/> {/* canvas used for image convolution */}
+      <canvas
+        className="bg-black min-w-[500px] max-w-4xl"
+        style={{"flex": "1 1 60%"}}
+        width={canvasWidth} height={canvasHeight} // canvas's internal resolution
+        ref={canvasRef} 
+        onMouseDown={event => handle_mouse_down(event)} onMouseUp={handle_mouse_up}
+        onMouseMove={event => handle_mouse_move(event)}
+      />
+      <div 
+        className="bg-white p-8 rounded-lg shadow-lg max-w-xl"
+        style={{"flex": "1 1 25%"}}
+        >
+        <h1 className="text-2xl font-bold mb-6 text-center">Matrix Transform Explorer</h1>
+        <div className="flex mb-6 justify-center">
+          <h2 className="text-xl font-semibold mr-2">Drag me:</h2>
+          <input className="" type="range" min="0" max="1" step="0.01" value={time} onChange={e => set_time(e.target.value)}></input>
         </div>
-        <div>
-          <input type="range" min="0" max="1" step="0.01" value={time} onChange={e => set_time(e.target.value)}></input>
-          <br />
-          <button onClick={linear_transform_identity}>Identity</button>
-          <button onClick={linear_transform_shear}>Shear</button>
-          <button onClick={linear_transform_rotation}>Rotation</button>
-          <button onClick={linear_transform_random}>Random</button>
-          <br />
-          Transform Matrix
-          <br />
-          <input type="number" name="a" value={a} onChange={e => set_a(e.target.value)} ></input>
-          <input type="number" name="c" value={c} onChange={e => set_c(e.target.value)} ></input>
-          <br />
-          <input type="number" name="b" value={b} onChange={e => set_b(e.target.value)} ></input>
-          <input type="number" name="d" value={d} onChange={e => set_d(e.target.value)} ></input>
-          <br />
-          Convolution Matrix
-          <br />
-          <button onClick={convolution_reset}>Reset</button>
-          <button onClick={convolution_sharpen}>Sharpen</button>
-          <button onClick={convolution_box_blur}>Box Blur</button>
-          <br />
-          <input type="number" name="kernel_a" value={kernel[0][0]} onChange={e => set_kernel_idx(e.target.value, 0, 0)} ></input>
-          <input type="number" name="kernel_d" value={kernel[0][1]} onChange={e => set_kernel_idx(e.target.value, 0, 1)} ></input>
-          <input type="number" name="kernel_g" value={kernel[0][2]} onChange={e => set_kernel_idx(e.target.value, 0, 2)} ></input>
-          <br />
-          <input type="number" name="kernel_b" value={kernel[1][0]} onChange={e => set_kernel_idx(e.target.value, 1, 0)} ></input>
-          <input type="number" name="kernel_e" value={kernel[1][1]} onChange={e => set_kernel_idx(e.target.value, 1, 1)} ></input>
-          <input type="number" name="kernel_h" value={kernel[1][2]} onChange={e => set_kernel_idx(e.target.value, 1, 2)} ></input>
-          <br />
-          <input type="number" name="kernel_c" value={kernel[2][0]} onChange={e => set_kernel_idx(e.target.value, 2, 0)} ></input>
-          <input type="number" name="kernel_f" value={kernel[2][1]} onChange={e => set_kernel_idx(e.target.value, 2, 1)} ></input>
-          <input type="number" name="kernel_i" value={kernel[2][2]} onChange={e => set_kernel_idx(e.target.value, 2, 2)} ></input>
+        <div className="flex flex-wrap gap-4 mb-4"> {/*container for change img, hide img, hide eigenv buttons*/}
+          <label className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+            <input hidden type="file" accept="image/*" onChange={e => updateImage(e.target.files)} />
+            Change image
+          </label>
+          <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_image(!show_image)}> {show_image ? 'Hide image' : 'Show image'} </button>
+          <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_eigenvectors(!show_eigenvectors)}> {show_eigenvectors ? 'Hide eigenvectors' : 'Show eigenvectors'} </button>
+        </div>
+        <h2 className="text-xl font-semibold mb-4">Transform Matrix</h2>
+        <div className="flex flex-wrap gap-4 mb-4">
+          <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={linear_transform_identity}>Identity</button>
+          <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={linear_transform_shear}>Shear</button>
+          <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={linear_transform_rotation}>Rotation</button>
+          <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={linear_transform_random}>Random</button>
+        </div>
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          <input className="border rounded p-2 text-center" type="number" name="a" value={a} onChange={e => set_a(e.target.value)} ></input>
+          <input className="border rounded p-2 text-center" type="number" name="c" value={c} onChange={e => set_c(e.target.value)} ></input>
+          <input className="border rounded p-2 text-center" type="number" name="b" value={b} onChange={e => set_b(e.target.value)} ></input>
+          <input className="border rounded p-2 text-center" type="number" name="d" value={d} onChange={e => set_d(e.target.value)} ></input>
+        </div>
+        <h2 className="text-xl font-semibold mb-4">Convolution Matrix</h2>
+        <div className="flex gap-4 mb-4">
+          <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" onClick={convolution_reset}>Reset</button>
+          <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" onClick={convolution_sharpen}>Sharpen</button>
+          <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" onClick={convolution_box_blur}>Box Blur</button>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <input className="border rounded p-2 text-center" type="number" name="kernel_a" value={kernel[0][0]} onChange={e => set_kernel_idx(e.target.value, 0, 0)} ></input>
+          <input className="border rounded p-2 text-center" type="number" name="kernel_d" value={kernel[0][1]} onChange={e => set_kernel_idx(e.target.value, 0, 1)} ></input>
+          <input className="border rounded p-2 text-center" type="number" name="kernel_g" value={kernel[0][2]} onChange={e => set_kernel_idx(e.target.value, 0, 2)} ></input>
+          <input className="border rounded p-2 text-center" type="number" name="kernel_b" value={kernel[1][0]} onChange={e => set_kernel_idx(e.target.value, 1, 0)} ></input>
+          <input className="border rounded p-2 text-center" type="number" name="kernel_e" value={kernel[1][1]} onChange={e => set_kernel_idx(e.target.value, 1, 1)} ></input>
+          <input className="border rounded p-2 text-center" type="number" name="kernel_h" value={kernel[1][2]} onChange={e => set_kernel_idx(e.target.value, 1, 2)} ></input>
+          <input className="border rounded p-2 text-center" type="number" name="kernel_c" value={kernel[2][0]} onChange={e => set_kernel_idx(e.target.value, 2, 0)} ></input>
+          <input className="border rounded p-2 text-center" type="number" name="kernel_f" value={kernel[2][1]} onChange={e => set_kernel_idx(e.target.value, 2, 1)} ></input>
+          <input className="border rounded p-2 text-center" type="number" name="kernel_i" value={kernel[2][2]} onChange={e => set_kernel_idx(e.target.value, 2, 2)} ></input>
         </div>
       </div>
     </div>
