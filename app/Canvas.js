@@ -284,7 +284,7 @@ const Canvas = (props) => {
       <img hidden src={img_src} ref={imageRef} onLoad={() => set_image_loaded(true)} alt=""/>
       <canvas hidden ref={image_canvas_ref}/> {/* canvas used for image convolution */}
       <canvas
-        className="bg-black min-w-[500px] max-w-4xl"
+        className="bg-black min-w-[400px] max-w-4xl"
         style={{"flex": "1 1 60%"}}
         width={canvasWidth} height={canvasHeight} // canvas's internal resolution
         ref={canvasRef} 
