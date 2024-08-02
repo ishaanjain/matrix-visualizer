@@ -279,7 +279,7 @@ const Canvas = (props) => {
   }, [image_processed, time, a, b, c, d, originX, originY, show_image, show_eigenvectors]);
 
   return (
-    <div className="bg-gradient-to-r from-gray-100 to-gray-300 min-h-screen flex justify-center items-center flex-wrap-reverse gap-8 p-5">
+    <div className="bg-gradient-to-r from-gray-100 to-gray-300 min-h-screen flex justify-center items-center flex-wrap gap-8 p-5">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img hidden src={img_src} ref={imageRef} onLoad={() => set_image_loaded(true)} alt=""/>
       <canvas hidden ref={image_canvas_ref}/> {/* canvas used for image convolution */}
