@@ -10,7 +10,10 @@ const Canvas = (props) => {
   const target_radius = 14;
 
   const imageRef = useRef(null)
-  const [img_src, set_img_src] = useState("default.png");
+
+  const img_choices = [1, 2, 3, 4]
+  var img_choice = img_choices[Math.floor(Math.random()*img_choices.length)];
+  const [img_src, set_img_src] = useState(img_choice+".jpg");
   const [image_loaded, set_image_loaded] = useState(false);
 
   // hidden canvas (not displayed in DOM) used for image preprocessing
