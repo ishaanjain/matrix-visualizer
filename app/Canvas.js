@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
+import Image from 'next/image';
 import { eigs, norm, transpose } from 'mathjs'
 
 const Canvas = (props) => {
@@ -282,66 +283,77 @@ const Canvas = (props) => {
   }, [image_processed, time, a, b, c, d, originX, originY, show_image, show_eigenvectors]);
 
   return (
-    <div className="bg-gradient-to-r from-gray-100 to-gray-300 min-h-screen flex justify-center items-center flex-wrap gap-8 p-5">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img hidden src={img_src} ref={imageRef} onLoad={() => set_image_loaded(true)} alt=""/>
-      <canvas hidden ref={image_canvas_ref}/> {/* canvas used for image convolution */}
-      <canvas
-        className="bg-black min-w-0 max-w-4xl"
-        style={{"flex": "1 1 60%"}}
-        width={canvasWidth} height={canvasHeight} // canvas's internal resolution
-        ref={canvasRef} 
-        onMouseDown={event => handle_mouse_down(event)} onMouseUp={handle_mouse_up}
-        onMouseMove={event => handle_mouse_move(event)}
-      />
-      <div 
-        className="bg-white p-8 rounded-lg shadow-lg max-w-xl"
-        style={{"flex": "1 1 25%"}}
-        >
-        <h1 className="text-2xl font-bold mb-6 text-center">Matrix Transform Explorer</h1>
-        <div className="flex mb-6 justify-center">
-          <h2 className="text-xl font-semibold mr-2">Drag me:</h2>
-          <input className="" type="range" min="0" max="1" step="0.01" value={time} onChange={e => set_time(e.target.value)}></input>
-        </div>
-        <div className="flex flex-wrap gap-4 mb-4"> {/*container for change img, hide img, hide eigenv buttons*/}
-          <label className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
-            <input hidden type="file" accept="image/*" onChange={e => updateImage(e.target.files)} />
-            Change image
-          </label>
-          <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_image(!show_image)}> {show_image ? 'Hide image' : 'Show image'} </button>
-          <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_eigenvectors(!show_eigenvectors)}> {show_eigenvectors ? 'Hide eigenvectors' : 'Show eigenvectors'} </button>
-        </div>
-        <h2 className="text-xl font-semibold mb-4">Transform Matrix</h2>
-        <div className="flex flex-wrap gap-4 mb-4">
-          <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={linear_transform_identity}>Identity</button>
-          <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={linear_transform_shear}>Shear</button>
-          <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={linear_transform_rotation}>Rotation</button>
-          <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={linear_transform_random}>Random</button>
-        </div>
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          <input className="border rounded p-2 text-center" type="number" name="a" value={a} onChange={e => set_a(e.target.value)} ></input>
-          <input className="border rounded p-2 text-center" type="number" name="c" value={c} onChange={e => set_c(e.target.value)} ></input>
-          <input className="border rounded p-2 text-center" type="number" name="b" value={b} onChange={e => set_b(e.target.value)} ></input>
-          <input className="border rounded p-2 text-center" type="number" name="d" value={d} onChange={e => set_d(e.target.value)} ></input>
-        </div>
-        <h2 className="text-xl font-semibold mb-4">Convolution Matrix</h2>
-        <div className="flex gap-4 mb-4">
-          <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" onClick={convolution_reset}>Reset</button>
-          <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" onClick={convolution_sharpen}>Sharpen</button>
-          <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" onClick={convolution_box_blur}>Box Blur</button>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          <input className="border rounded p-2 text-center" type="number" name="kernel_a" value={kernel[0][0]} onChange={e => set_kernel_idx(e.target.value, 0, 0)} ></input>
-          <input className="border rounded p-2 text-center" type="number" name="kernel_d" value={kernel[0][1]} onChange={e => set_kernel_idx(e.target.value, 0, 1)} ></input>
-          <input className="border rounded p-2 text-center" type="number" name="kernel_g" value={kernel[0][2]} onChange={e => set_kernel_idx(e.target.value, 0, 2)} ></input>
-          <input className="border rounded p-2 text-center" type="number" name="kernel_b" value={kernel[1][0]} onChange={e => set_kernel_idx(e.target.value, 1, 0)} ></input>
-          <input className="border rounded p-2 text-center" type="number" name="kernel_e" value={kernel[1][1]} onChange={e => set_kernel_idx(e.target.value, 1, 1)} ></input>
-          <input className="border rounded p-2 text-center" type="number" name="kernel_h" value={kernel[1][2]} onChange={e => set_kernel_idx(e.target.value, 1, 2)} ></input>
-          <input className="border rounded p-2 text-center" type="number" name="kernel_c" value={kernel[2][0]} onChange={e => set_kernel_idx(e.target.value, 2, 0)} ></input>
-          <input className="border rounded p-2 text-center" type="number" name="kernel_f" value={kernel[2][1]} onChange={e => set_kernel_idx(e.target.value, 2, 1)} ></input>
-          <input className="border rounded p-2 text-center" type="number" name="kernel_i" value={kernel[2][2]} onChange={e => set_kernel_idx(e.target.value, 2, 2)} ></input>
+    <div className="bg-gradient-to-r from-gray-100 to-gray-300 min-h-screen flex flex-col justify-between">
+      <div id="main-content" className="flex justify-center items-center flex-wrap gap-8 p-5">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img hidden src={img_src} ref={imageRef} onLoad={() => set_image_loaded(true)} alt=""/>
+        {/* hidden canvas */}
+        <canvas hidden ref={image_canvas_ref}/> {/* canvas used for image convolution */}
+        {/* visible canvas */}
+        <canvas
+          className="bg-black min-w-0 max-w-3xl"
+          style={{"flex": "1 1 60%"}}
+          width={canvasWidth} height={canvasHeight} // canvas's internal resolution
+          ref={canvasRef} 
+          onMouseDown={event => handle_mouse_down(event)} onMouseUp={handle_mouse_up}
+          onMouseMove={event => handle_mouse_move(event)}
+        />
+        {/* card */}
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-xl" style={{"flex": "1 1 25%"}} > 
+          <h1 className="text-2xl font-bold mb-6 text-center">Matrix Transform Explorer</h1>
+          <div className="flex mb-6 justify-center">
+            <h2 className="text-xl font-semibold mr-2">Drag me:</h2>
+            <input className="" type="range" min="0" max="1" step="0.01" value={time} onChange={e => set_time(e.target.value)}></input>
+          </div>
+          <div className="flex flex-wrap gap-4 mb-4"> {/*container for change img, hide img, hide eigenv buttons*/}
+            <label className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+              <input hidden type="file" accept="image/*" onChange={e => updateImage(e.target.files)} />
+              Change image
+            </label>
+            <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_image(!show_image)}> {show_image ? 'Hide image' : 'Show image'} </button>
+            <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_eigenvectors(!show_eigenvectors)}> {show_eigenvectors ? 'Hide eigenvectors' : 'Show eigenvectors'} </button>
+          </div>
+          <h2 className="text-xl font-semibold mb-4">Transform Matrix</h2>
+          <div className="flex flex-wrap gap-4 mb-4">
+            <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={linear_transform_identity}>Identity</button>
+            <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={linear_transform_shear}>Shear</button>
+            <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={linear_transform_rotation}>Rotation</button>
+            <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={linear_transform_random}>Random</button>
+          </div>
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <input className="border rounded p-2 text-center" type="number" name="a" value={a} onChange={e => set_a(e.target.value)} ></input>
+            <input className="border rounded p-2 text-center" type="number" name="c" value={c} onChange={e => set_c(e.target.value)} ></input>
+            <input className="border rounded p-2 text-center" type="number" name="b" value={b} onChange={e => set_b(e.target.value)} ></input>
+            <input className="border rounded p-2 text-center" type="number" name="d" value={d} onChange={e => set_d(e.target.value)} ></input>
+          </div>
+          <h2 className="text-xl font-semibold mb-4">Convolution Matrix</h2>
+          <div className="flex gap-4 mb-4">
+            <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" onClick={convolution_reset}>Reset</button>
+            <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" onClick={convolution_sharpen}>Sharpen</button>
+            <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" onClick={convolution_box_blur}>Box Blur</button>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <input className="border rounded p-2 text-center" type="number" name="kernel_a" value={kernel[0][0]} onChange={e => set_kernel_idx(e.target.value, 0, 0)} ></input>
+            <input className="border rounded p-2 text-center" type="number" name="kernel_d" value={kernel[0][1]} onChange={e => set_kernel_idx(e.target.value, 0, 1)} ></input>
+            <input className="border rounded p-2 text-center" type="number" name="kernel_g" value={kernel[0][2]} onChange={e => set_kernel_idx(e.target.value, 0, 2)} ></input>
+            <input className="border rounded p-2 text-center" type="number" name="kernel_b" value={kernel[1][0]} onChange={e => set_kernel_idx(e.target.value, 1, 0)} ></input>
+            <input className="border rounded p-2 text-center" type="number" name="kernel_e" value={kernel[1][1]} onChange={e => set_kernel_idx(e.target.value, 1, 1)} ></input>
+            <input className="border rounded p-2 text-center" type="number" name="kernel_h" value={kernel[1][2]} onChange={e => set_kernel_idx(e.target.value, 1, 2)} ></input>
+            <input className="border rounded p-2 text-center" type="number" name="kernel_c" value={kernel[2][0]} onChange={e => set_kernel_idx(e.target.value, 2, 0)} ></input>
+            <input className="border rounded p-2 text-center" type="number" name="kernel_f" value={kernel[2][1]} onChange={e => set_kernel_idx(e.target.value, 2, 1)} ></input>
+            <input className="border rounded p-2 text-center" type="number" name="kernel_i" value={kernel[2][2]} onChange={e => set_kernel_idx(e.target.value, 2, 2)} ></input>
+          </div>
         </div>
       </div>
+      <footer className="m-2 flex justify-center">
+        Made with 
+        <Image src="React-icon.svg" alt="" width={16} height={16} className="m-1"></Image>
+        React,
+        <Image src="Tailwind-icon.svg" alt="" width={16} height={16} className="m-1"></Image>
+        Tailwind, and
+        <Image src="HTML5-icon.svg" alt="" width={16} height={16} className="m-1"></Image>
+        canvas
+      </footer>
     </div>
   );
 };
