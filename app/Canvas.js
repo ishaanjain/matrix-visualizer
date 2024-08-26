@@ -41,10 +41,12 @@ const Canvas = (props) => {
   const [show_image, set_show_image] = useState(true)
   const [show_eigenvectors, set_show_eigenvectors] = useState(true)
   
+  // is x/y target selected (clicked on)
   const [x_target_selected, set_x_target_selected] = useState(false)
   const [y_target_selected, set_y_target_selected] = useState(false)
-  const [x_click_offset, set_x_click_offset] = useState(null)
-  const [y_click_offset, set_y_click_offset] = useState(null)
+  // if x/y target is selected, what is the coordinate offset between the cursor and the center of the x/y target
+  const [x_target_click_offset, set_x_target_click_offset] = useState(null)
+  const [y_target_click_offset, set_y_target_click_offset] = useState(null)
 
   const updateImage = files => {
     if (files.length === 0) return;
@@ -125,26 +127,26 @@ const Canvas = (props) => {
     const x_target_coords = [a*80, -b*80]
     const y_target_coords = [c*80, -d*80]
 
-    // (Δx, Δy) distance between where the mouse was clicked and the x/y target
-    const x_target_click_offset = [mouse_coords[0]-x_target_coords[0], mouse_coords[1]-x_target_coords[1]]
-    const y_target_click_offset = [mouse_coords[0]-y_target_coords[0], mouse_coords[1]-y_target_coords[1]]
-
-    const dist_to_x_target = Math.hypot(...x_target_click_offset)
-    const dist_to_y_target = Math.hypot(...y_target_click_offset)
+    // (Δx, Δy) distance between the cursor and the x/y target
+    const x_target_offset = [mouse_coords[0]-x_target_coords[0], mouse_coords[1]-x_target_coords[1]]
+    const y_target_offset = [mouse_coords[0]-y_target_coords[0], mouse_coords[1]-y_target_coords[1]]
+    // magnitude of distance between where the cursor and the x/y target
+    const dist_to_x_target = Math.hypot(...x_target_offset)
+    const dist_to_y_target = Math.hypot(...y_target_offset)
 
     if (dist_to_x_target < target_radius && dist_to_y_target > target_radius) {
       set_x_target_selected(true)
-      set_x_click_offset(x_target_click_offset)
+      set_x_target_click_offset(x_target_offset)
     } else if (dist_to_x_target > target_radius && dist_to_y_target < target_radius) {
       set_y_target_selected(true)
-      set_y_click_offset(y_target_click_offset)
+      set_y_target_click_offset(y_target_offset)
     } else if (dist_to_x_target < target_radius && dist_to_y_target < target_radius) {
       if (dist_to_x_target < dist_to_y_target) {
         set_x_target_selected(true)
-        set_x_click_offset(x_target_click_offset)
+        set_x_target_click_offset(x_target_offset)
       } else {
         set_y_target_selected(true)
-        set_y_click_offset(y_target_click_offset)
+        set_y_target_click_offset(y_target_offset)
       }
     }
   }
@@ -156,12 +158,29 @@ const Canvas = (props) => {
 
   const handle_mouse_move = event => {
     const mouse_coords = [event.nativeEvent.offsetX-originX, event.nativeEvent.offsetY-originY]
+    const x_target_coords = [a*80, -b*80]
+    const y_target_coords = [c*80, -d*80]
+
+    // (Δx, Δy) distance between the cursor and the x/y target
+    const x_target_offset = [mouse_coords[0]-x_target_coords[0], mouse_coords[1]-x_target_coords[1]]
+    const y_target_offset = [mouse_coords[0]-y_target_coords[0], mouse_coords[1]-y_target_coords[1]]
+    // magnitude of distance between where the cursor and the x/y target
+    const dist_to_x_target = Math.hypot(...x_target_offset)
+    const dist_to_y_target = Math.hypot(...y_target_offset)
+
+    const canvas = canvasRef.current;
+    if (dist_to_x_target < target_radius || dist_to_y_target < target_radius) {
+      canvas.style.cursor = 'pointer';
+    } else {
+      canvas.style.cursor = 'default';
+    }
+
     if (x_target_selected) {
-      const x_target_coords = [mouse_coords[0]-x_click_offset[0], mouse_coords[1]-x_click_offset[1]]
+      const x_target_coords = [mouse_coords[0]-x_target_click_offset[0], mouse_coords[1]-x_target_click_offset[1]]
       set_a(x_target_coords[0]/80)
       set_b(-x_target_coords[1]/80)
     } else if (y_target_selected) {
-      const y_target_coords = [mouse_coords[0]-y_click_offset[0], mouse_coords[1]-y_click_offset[1]]
+      const y_target_coords = [mouse_coords[0]-y_target_click_offset[0], mouse_coords[1]-y_target_click_offset[1]]
       set_c(y_target_coords[0]/80)
       set_d(-y_target_coords[1]/80)
     }
@@ -171,7 +190,7 @@ const Canvas = (props) => {
   useEffect(() => {
     if (!image_loaded) return;
 
-    // calculate desired image dimentions
+    // calculate desired image dimensions
     const image = imageRef.current;
     let dImageWidth; // desired image width
     let dImageHeight; // desired image height
