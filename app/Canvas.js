@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import Image from 'next/image';
-import { eigs, norm, transpose } from 'mathjs'
+import { eigs, norm, transpose } from 'mathjs';
 
 const Canvas = (props) => {
 
