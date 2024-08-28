@@ -264,30 +264,33 @@ const Canvas = (props) => {
     context.translate(originX, originY);
 
     try {
-      // draw the eigenvectors
       if (!show_eigenvectors) { return; }
-      const {values, vectors} = eigs([[a, c], [b, d]]) // eigs() throws error if no eigenvectors
-      let [val1, val2] = values
-      let [vec1, vec2] = transpose(vectors)
-      if (typeof vec1[0] !== 'number') { return; } // check if eigenvectors are real (not imaginary)
+      // compute eigenvectors
+      const {eigenvectors: eigenPairs} = eigs([[a, c], [b, d]]) // eigs() throws error if no eigenvectors
 
-      vec1 = vec1.map(x => {
-        x = x/norm(vec1)
-        return x + (x*val1 - x)*time
-      })
-      vec2 = vec2.map(x => {
-        x = x/norm(vec2)
-        return x + (x*val2 - x)*time
-      })
+      // check if eigenvectors are real (not imaginary)
+      if (typeof eigenPairs[0].vector[0] !== 'number') { 
+        return; 
+      }
 
+      // set magnitude of eigenvectors using "time" value ("time" value represents slider position)
+      for (let eigenPair of eigenPairs) {
+        eigenPair.vector = eigenPair.vector.map(x => {
+          x = x/norm(eigenPair.vector)
+          return x + (x*eigenPair.value - x)*time
+        })
+      }
+
+      // draw the eigenvectors
       for (let i = 0; i < 60; i++) {
-        draw_arrow(context, 80*vec1[0]*i, -80*vec1[1]*i, 80*vec1[0]*(i+1), -80*vec1[1]*(i+1), "rgb(246, 194, 138)");
-        draw_arrow(context, -80*vec1[0]*i, 80*vec1[1]*i, -80*vec1[0]*(i+1), 80*vec1[1]*(i+1), "rgb(246, 194, 138)");
-        draw_arrow(context, 80*vec2[0]*i, -80*vec2[1]*i, 80*vec2[0]*(i+1), -80*vec2[1]*(i+1), "rgb(246, 194, 138)");
-        draw_arrow(context, -80*vec2[0]*i, 80*vec2[1]*i, -80*vec2[0]*(i+1), 80*vec2[1]*(i+1), "rgb(246, 194, 138)");
+        for (let eigenPair of eigenPairs) {
+          const vec = eigenPair.vector
+          draw_arrow(context, 80*vec[0]*i, -80*vec[1]*i, 80*vec[0]*(i+1), -80*vec[1]*(i+1), "rgb(246, 194, 138)");
+          draw_arrow(context, -80*vec[0]*i, 80*vec[1]*i, -80*vec[0]*(i+1), 80*vec[1]*(i+1), "rgb(246, 194, 138)");
+        }
       }
     } catch (error) {
-      // console.log('eigs() threw an error');
+      console.log('eigs() threw an error', error);
     } finally {
       // draw the x and y unit vectors
       draw_arrow(context, 0, 0, 80*time_a, 80*time_b, "rgb(151, 187, 110)");
