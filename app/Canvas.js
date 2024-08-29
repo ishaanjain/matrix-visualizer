@@ -23,12 +23,12 @@ const Canvas = (props) => {
 
   // value between zero and one
   // respresents what percent the linear transformation has completed
-  const [time, set_time] = useState(1);
+  const [time, set_time] = useState(0);
 
   // linear transform matrix
-  const [a, set_a] = useState(1.5);
-  const [b, set_b] = useState(0);
-  const [c, set_c] = useState(.5);
+  const [a, set_a] = useState(1);
+  const [b, set_b] = useState(-.5);
+  const [c, set_c] = useState(-.5);
   const [d, set_d] = useState(1);
 
   // convolution matrix
