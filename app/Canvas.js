@@ -38,8 +38,8 @@ const Canvas = (props) => {
     [0, 0, 0]
   ]);
 
-  const [show_image, set_show_image] = useState(true)
   const [show_eigenvectors, set_show_eigenvectors] = useState(true)
+  const [show_image, set_show_image] = useState(true)
   
   // is x/y target selected (clicked on)
   const [x_target_selected, set_x_target_selected] = useState(false)
@@ -336,13 +336,13 @@ const Canvas = (props) => {
             <h2 className="text-xl font-semibold mr-2">Drag me:</h2>
             <input className="" type="range" min="0" max="1" step="0.01" value={time} onChange={e => set_time(e.target.value)}></input>
           </div>
-          <div className="flex flex-wrap gap-4 mb-4"> {/*container for change img, hide img, hide eigenv buttons*/}
+          <div className="flex flex-wrap gap-4 mb-4"> {/*container for hide eigenv, hide img, change img buttons*/}
+            <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_eigenvectors(!show_eigenvectors)}> {show_eigenvectors ? 'Hide eigenvectors' : 'Show eigenvectors'} </button>
+            <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_image(!show_image)}> {show_image ? 'Hide image' : 'Show image'} </button>
             <label className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
               <input hidden type="file" accept="image/*" onChange={e => updateImage(e.target.files)} />
               Change image
             </label>
-            <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_image(!show_image)}> {show_image ? 'Hide image' : 'Show image'} </button>
-            <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_eigenvectors(!show_eigenvectors)}> {show_eigenvectors ? 'Hide eigenvectors' : 'Show eigenvectors'} </button>
           </div>
           <h2 className="text-xl font-semibold mb-4">Transform Matrix</h2>
           <div className="flex flex-wrap gap-4 mb-4">
