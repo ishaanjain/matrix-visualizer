@@ -143,13 +143,8 @@ const Canvas = (props) => {
     const dist_to_x_target = Math.hypot(...x_target_offset)
     const dist_to_y_target = Math.hypot(...y_target_offset)
 
-    if (dist_to_x_target < target_radius && dist_to_y_target > target_radius) {
-      set_x_target_selected(true)
-      set_x_target_click_offset(x_target_offset)
-    } else if (dist_to_x_target > target_radius && dist_to_y_target < target_radius) {
-      set_y_target_selected(true)
-      set_y_target_click_offset(y_target_offset)
-    } else if (dist_to_x_target < target_radius && dist_to_y_target < target_radius) {
+
+    if (dist_to_x_target <= target_radius*3 && dist_to_y_target <= target_radius*3) {
       if (dist_to_x_target < dist_to_y_target) {
         set_x_target_selected(true)
         set_x_target_click_offset(x_target_offset)
@@ -157,6 +152,12 @@ const Canvas = (props) => {
         set_y_target_selected(true)
         set_y_target_click_offset(y_target_offset)
       }
+    } else if (dist_to_x_target <= target_radius*3) {
+      set_x_target_selected(true)
+      set_x_target_click_offset(x_target_offset)
+    } else if (dist_to_y_target <= target_radius*3) {
+      set_y_target_selected(true)
+      set_y_target_click_offset(y_target_offset)
     }
   }
 
@@ -186,8 +187,10 @@ const Canvas = (props) => {
     const dist_to_x_target = Math.hypot(...x_target_offset)
     const dist_to_y_target = Math.hypot(...y_target_offset)
 
-    if (dist_to_x_target < target_radius || dist_to_y_target < target_radius) {
-      canvas.style.cursor = 'pointer';
+    if (x_target_selected || y_target_selected) {
+      canvas.style.cursor = 'none';
+    } else if (dist_to_x_target <= target_radius*3 || dist_to_y_target <= target_radius*3) {
+      canvas.style.cursor = 'move';
     } else {
       canvas.style.cursor = 'default';
     }
