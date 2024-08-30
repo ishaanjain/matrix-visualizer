@@ -195,14 +195,16 @@ const Canvas = (props) => {
       canvas.style.cursor = 'default';
     }
 
+    const round = num => Math.round(num * 100) / 100;
+
     if (x_target_selected) {
       const x_target_coords = [mouse_coords[0]-x_target_click_offset[0], mouse_coords[1]-x_target_click_offset[1]]
-      set_a(x_target_coords[0]/80)
-      set_b(-x_target_coords[1]/80)
+      set_a(round(x_target_coords[0]/80))
+      set_b(round(-x_target_coords[1]/80))
     } else if (y_target_selected) {
       const y_target_coords = [mouse_coords[0]-y_target_click_offset[0], mouse_coords[1]-y_target_click_offset[1]]
-      set_c(y_target_coords[0]/80)
-      set_d(-y_target_coords[1]/80)
+      set_c(round(y_target_coords[0]/80))
+      set_d(round(-y_target_coords[1]/80))
     }
   }
 
