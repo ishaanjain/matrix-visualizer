@@ -324,10 +324,11 @@ const Canvas = (props) => {
         <div className="relative bg-white p-8 rounded-lg shadow-lg max-w-xl" style={{"flex": "1 1 25%"}} > 
           <div className="absolute group top-4 right-4 text-xl">
             &#9432;
-            <div class="absolute top-0 right-0 mb-2 hidden w-96 px-2 py-1 text-white text-sm bg-gray-800 rounded shadow-lg group-hover:block">
-              Drag the green and red targets to set the linear transform basis vectors. <br/><br/>
-              Drag the slider to visualize the transformation. <br/><br/>
-              You can also apply convolutions to the image.
+            <div class="absolute top-0 right-0 mb-2 hidden w-80 px-2 py-1 text-white text-sm bg-gray-800 rounded shadow-lg group-hover:block">
+              Explore matrix transformations with our interactive visualizer. 
+              <br/>
+              <br/>
+              Drag vectors, apply convolutions, and see the math in action.
             </div>
           </div>
           <h1 className="text-2xl font-bold text-center">Matrix Transform Visualizer</h1>
