@@ -123,7 +123,16 @@ const Canvas = (props) => {
   }
 
   const handle_mouse_down = event => {
-    const mouse_coords = [event.nativeEvent.offsetX-originX, event.nativeEvent.offsetY-originY]
+    const canvas = canvasRef.current;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mouse_coords = [
+      event.nativeEvent.offsetX*scaleX-originX, 
+      event.nativeEvent.offsetY*scaleY-originY
+    ]
+
     const x_target_coords = [a*80, -b*80]
     const y_target_coords = [c*80, -d*80]
 
@@ -157,7 +166,16 @@ const Canvas = (props) => {
   }
 
   const handle_mouse_move = event => {
-    const mouse_coords = [event.nativeEvent.offsetX-originX, event.nativeEvent.offsetY-originY]
+    const canvas = canvasRef.current;
+    
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mouse_coords = [
+      event.nativeEvent.offsetX*scaleX-originX, 
+      event.nativeEvent.offsetY*scaleY-originY
+    ]
+
     const x_target_coords = [a*80, -b*80]
     const y_target_coords = [c*80, -d*80]
 
@@ -168,7 +186,6 @@ const Canvas = (props) => {
     const dist_to_x_target = Math.hypot(...x_target_offset)
     const dist_to_y_target = Math.hypot(...y_target_offset)
 
-    const canvas = canvasRef.current;
     if (dist_to_x_target < target_radius || dist_to_y_target < target_radius) {
       canvas.style.cursor = 'pointer';
     } else {
@@ -314,11 +331,12 @@ const Canvas = (props) => {
         {/* visible canvas */}
         <canvas
           className="bg-black min-w-0 max-w-4xl"
-          style={{"flex": "1 1 60%"}}
+          style={{"flex": "1 1 60%", "touchAction": "none"}}
           width={canvasWidth} height={canvasHeight} // canvas's internal resolution
           ref={canvasRef} 
-          onPointerDown={event => handle_mouse_down(event)} onMouseUp={handle_mouse_up}
+          onPointerDown={event => handle_mouse_down(event)} 
           onPointerMove={event => handle_mouse_move(event)}
+          onPointerUp={handle_mouse_up}
         />
         {/* card */}
         <div className="relative bg-white p-8 rounded-lg shadow-lg max-w-xl" style={{"flex": "1 1 25%"}} > 
