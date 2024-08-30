@@ -358,7 +358,9 @@ const Canvas = (props) => {
             </div>
           </div>
           <h1 className="text-2xl font-bold text-center">Matrix Transform Visualizer</h1>
-          <h1 className="text-sm text-slate-500 mb-4 text-center">Inspired by 3Blue1Brown</h1>
+          <h2 className="text-sm text-slate-500 mb-4 text-center">
+            Inspired by <a href="https://www.3blue1brown.com" className="hover:underline">3Blue1Brown</a>
+          </h2>
           <div className="flex mb-6 justify-center">
             <h2 className="text-xl font-semibold mr-2">Drag me:</h2>
             <input className="" type="range" min="0" max="1" step="0.01" value={time} onChange={e => set_time(e.target.value)}></input>
@@ -403,13 +405,13 @@ const Canvas = (props) => {
           </div>
         </div>
       </div>
-      <footer className="m-2 flex justify-center">
-        Made with 
-        <Image src="React-icon.svg" alt="" width={16} height={16} className="m-1"></Image>
+      <footer className="m-2 text-center">
+        Made by <a href="https://x.com/ishaancjain" className="text-slate-600 hover:underline">Ishaan Jain</a> using
+        <Image src="React-icon.svg" alt="" width={16} height={16} className="mx-1 inline"></Image>
         React,
-        <Image src="Tailwind-icon.svg" alt="" width={16} height={16} className="m-1"></Image>
+        <Image src="Tailwind-icon.svg" alt="" width={16} height={16} className="mx-1 inline"></Image>
         Tailwind, and
-        <Image src="HTML5-icon.svg" alt="" width={16} height={16} className="m-1"></Image>
+        <Image src="HTML5-icon.svg" alt="" width={16} height={16} className="mx-1 inline"></Image>
         canvas
       </footer>
     </div>
