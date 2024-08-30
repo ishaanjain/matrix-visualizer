@@ -317,8 +317,8 @@ const Canvas = (props) => {
           style={{"flex": "1 1 60%"}}
           width={canvasWidth} height={canvasHeight} // canvas's internal resolution
           ref={canvasRef} 
-          onMouseDown={event => handle_mouse_down(event)} onMouseUp={handle_mouse_up}
-          onMouseMove={event => handle_mouse_move(event)}
+          onPointerDown={event => handle_mouse_down(event)} onMouseUp={handle_mouse_up}
+          onPointerMove={event => handle_mouse_move(event)}
         />
         {/* card */}
         <div className="relative bg-white p-8 rounded-lg shadow-lg max-w-xl" style={{"flex": "1 1 25%"}} > 
@@ -328,7 +328,7 @@ const Canvas = (props) => {
               Explore matrix transformations with our interactive visualizer. 
               <br/>
               <br/>
-              Drag vectors, apply convolutions, and see the math in action.
+              Drag vectors using the green/red targets, apply convolutions, and see the math in action.
             </div>
           </div>
           <h1 className="text-2xl font-bold text-center">Matrix Transform Visualizer</h1>
