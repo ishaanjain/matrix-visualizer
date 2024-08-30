@@ -38,8 +38,9 @@ const Canvas = (props) => {
     [0, 0, 0]
   ]);
 
-  const [show_eigenvectors, set_show_eigenvectors] = useState(true)
-  const [show_image, set_show_image] = useState(true)
+  const [show_unit_circle, set_show_unit_circle] = useState(false);
+  const [show_image, set_show_image] = useState(true);
+  const [show_eigenvectors, set_show_eigenvectors] = useState(true);
   
   // is x/y target selected (clicked on)
   const [x_target_selected, set_x_target_selected] = useState(false)
@@ -271,8 +272,10 @@ const Canvas = (props) => {
     // the context back to its transformed state, so we provide it with this callback function
     const transform_context = () => context.transform(time_a, time_b, time_c, time_d, originX, originY);
     
-    // draw the foreground grid (this grid is linearly transformed along with the image)
+    // draw the foreground grid (this grid is linearly transformed along with the image but must keep its linewidth constant)
     draw_foreground_grid(context, transform_context);
+    // draw the unit circle (this circle is linearly transformed along with the image but must keep its linewidth constant)
+    if (show_unit_circle) draw_unit_circle(context, transform_context);
 
     // reference canvas used for image preprocessing (aka convolution)
     const image_canvas = image_canvas_ref.current;
@@ -324,7 +327,7 @@ const Canvas = (props) => {
 
       context.restore();
     }
-  }, [image_processed, time, a, b, c, d, originX, originY, show_image, show_eigenvectors]);
+  }, [image_processed, time, a, b, c, d, originX, originY, show_unit_circle, show_image, show_eigenvectors]);
 
   return (
     <div className="bg-gradient-to-r from-gray-100 to-gray-300 min-h-screen flex flex-col justify-between">
@@ -366,6 +369,7 @@ const Canvas = (props) => {
             <input className="" type="range" min="0" max="1" step="0.01" value={time} onChange={e => set_time(e.target.value)}></input>
           </div>
           <div className="flex flex-wrap gap-4 mb-4"> {/*container for hide eigenv, hide img, change img buttons*/}
+            <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_unit_circle(!show_unit_circle)}> {show_unit_circle ? 'Hide unit circle' : 'Show unit circle'} </button>
             <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_eigenvectors(!show_eigenvectors)}> {show_eigenvectors ? 'Hide eigenvectors' : 'Show eigenvectors'} </button>
             <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_image(!show_image)}> {show_image ? 'Hide image' : 'Show image'} </button>
             <label className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
@@ -470,8 +474,7 @@ function draw_foreground_grid(context, transform_context) {
     context.moveTo(-4500, -y);
     context.lineTo(4500, -y);
   }
-  // we have to call restore() before stroke() so the linewidth 
-  // is not affected by the transform
+  // we have to call restore() before stroke() so the linewidth is not affected by the transform
   context.restore();
   context.save();
   context.strokeStyle = "rgb(69, 146, 165)";
@@ -486,8 +489,20 @@ function draw_foreground_grid(context, transform_context) {
   context.lineTo(0, 4500);
   context.moveTo(-4500, 0);
   context.lineTo(4500, 0);
-  // we have to call restore() before stroke() so the linewidth 
-  // is not affected by the transform
+  // we have to call restore() before stroke() so the linewidth is not affected by the transform
+  context.restore();
+  context.save();
+  context.strokeStyle = "rgb(255, 255, 255)";
+  context.lineWidth = 2;
+  context.stroke();
+  // return the canvas to its linearly transformed state
+  transform_context();
+}
+
+function draw_unit_circle(context, transform_context) {
+  context.beginPath();
+  context.arc(0, 0, 80, 0, 2*Math.PI);
+  // we have to call restore() before stroke() so the linewidth is not affected by the transform
   context.restore();
   context.save();
   context.strokeStyle = "rgb(255, 255, 255)";
