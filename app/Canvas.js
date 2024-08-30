@@ -350,6 +350,9 @@ const Canvas = (props) => {
               <br/>
               <br/>
               Drag vectors using the green/red targets, apply convolutions, and see the math in action.
+              <br/>
+              <br/>
+              Mobile friendly.
             </div>
           </div>
           <h1 className="text-2xl font-bold text-center">Matrix Transform Visualizer</h1>
