@@ -22,9 +22,10 @@ const Canvas = (props) => {
   const image_canvas_ref = useRef(null);
   const [image_processed, set_image_processed] = useState(false);
 
-  // value between zero and one
-  // respresents what percent the linear transformation has completed
+  // between 0 and 1, respresents what percent the linear transformation has completed
   const [time, set_time] = useState(0);
+  // represents whether the linear transformation animation is shown happening linearly, or using SVD
+  const [transition_type, set_transition_type] = useState('linear');
 
   // linear transform matrix
   const [a, set_a] = useState(1);
@@ -39,8 +40,8 @@ const Canvas = (props) => {
     [0, 0, 0]
   ]);
 
-  const [show_unit_circle, set_show_unit_circle] = useState(false);
-  const [show_image, set_show_image] = useState(true);
+  const [show_unit_circle, set_show_unit_circle] = useState(true);
+  const [show_image, set_show_image] = useState(false);
   const [show_eigenvectors, set_show_eigenvectors] = useState(true);
   
   // is x/y target selected (clicked on)
@@ -252,33 +253,6 @@ const Canvas = (props) => {
     const context = canvas.getContext("2d", {willReadFrequently: true});
     context.save();
 
-
-
-    
-    // calculate the actual transform values (dependent on the time variable)
-    const [
-      [time_a, time_c],
-      [time_b, time_d]
-    ] = svd_interp(a, b, c, d, time);
-
-    // svd_interp(
-    //   [1, 0], 
-    //   V_t.getColumn(0),
-    //   S.mmul(V_t).getColumn(0), 
-    //   U.mmul(S.mmul(V_t)).getColumn(0),
-    //   [a, b], 
-    //   time
-    // );
-    // svd_interp(
-    //   [0, 1], 
-    //   V_t.getColumn(1),
-    //   S.mmul(V_t).getColumn(1), 
-    //   U.mmul(S.mmul(V_t)).getColumn(1),
-    //   [c, d],
-    //   time
-    // );
-    
-
     // clear the canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -287,6 +261,15 @@ const Canvas = (props) => {
 
     // draw the background grid (this grid remains static during linear tranformations)
     draw_background_grid(context);
+
+    // calculate the actual transform values (dependent on the time variable)
+    let timed_vals = null;
+    if (transition_type === 'linear') timed_vals = timed_vals_linear(a, b, c, d, time);
+    else timed_vals = timed_vals_svd(a, b, c, d, time);
+    const [
+      [time_a, time_c],
+      [time_b, time_d]
+    ] = timed_vals;
 
     // linearly transform the canvas
     context.transform(time_a, -time_b, -time_c, time_d, 0, 0);
@@ -350,7 +333,7 @@ const Canvas = (props) => {
 
       context.restore();
     }
-  }, [image_processed, time, a, b, c, d, originX, originY, show_unit_circle, show_image, show_eigenvectors]);
+  }, [image_processed, time, transition_type, a, b, c, d, originX, originY, show_unit_circle, show_image, show_eigenvectors]);
 
   return (
     <div className="bg-gradient-to-r from-gray-100 to-gray-300 min-h-screen flex flex-col justify-between">
@@ -384,12 +367,29 @@ const Canvas = (props) => {
             </div>
           </div>
           <h1 className="text-2xl font-bold text-center">Matrix Transform Visualizer</h1>
-          <h2 className="text-sm text-slate-500 mb-4 text-center">
+          <h2 className="text-sm text-slate-500 mb-3 text-center">
             Inspired by <a href="https://www.3blue1brown.com" className="hover:underline">3Blue1Brown</a>
           </h2>
-          <div className="flex mb-6 justify-center">
-            <h2 className="text-xl font-semibold mr-2">Drag me:</h2>
-            <input className="" type="range" min="0" max="1" step="0.01" value={time} onChange={e => set_time(e.target.value)}></input>
+          <div className="flex flex-wrap mb-2 items-center">
+            <div className="mb-2 mr-4 flex min-w-fit">
+              <h2 className="mr-2 text-xl font-semibold">Drag me:</h2>
+              <input className="" type="range" min="0" max="1" step="0.01" value={time} onChange={e => set_time(e.target.value)}></input>
+            </div>
+            <div className="mb-2">
+              <span>Transition:</span>
+              <button
+                className={`ml-2 px-4 py-2 border rounded ${transition_type === 'linear' ? 'bg-blue-500 text-white' : 'bg-white text-black'}`}
+                onClick={() => set_transition_type('linear')}
+              >
+                Linear
+              </button>
+              <button
+                className={`ml-2 px-4 py-2 border rounded ${transition_type === 'SVD' ? 'bg-blue-500 text-white' : 'bg-white text-black'}`}
+                onClick={() => set_transition_type('SVD')}
+              >
+                SVD
+              </button>
+            </div>
           </div>
           <div className="flex flex-wrap gap-4 mb-4"> {/*container for hide eigenv, hide img, change img buttons*/}
             <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_unit_circle(!show_unit_circle)}> {show_unit_circle ? 'Hide unit circle' : 'Show unit circle'} </button>
@@ -614,29 +614,43 @@ function convolution(imageData, kernel) {
   return result;
 }
 
-// interpolates between vectors in a way that showcases SVD
-function svd_interp(a, b, c, d, time) {
+const zip = (a, b) => a.map((k, i) => [k, b[i]]);
+
+// computes the actual transform values (dependent on time) with a linear transition
+function timed_vals_linear(a, b, c, d, time) {
+  return zip(
+    linear_interp([1, 0], [a, b], time),
+    linear_interp([0, 1], [c, d], time),
+  );
+}
+
+// computes the actual transform values (dependent on time) with a transition that showcases SVD
+function timed_vals_svd(a, b, c, d, time) {
   const M = new Matrix([
-    [a, c],
-    [b, d],
+    [a*1, c*1],
+    [b*1, d*1],
   ]);
+
   const SVD = new SingularValueDecomposition(M)
   const U = SVD.leftSingularVectors;
   const S = SVD.diagonalMatrix;
   const V_t = SVD.rightSingularVectors.transpose();
+
+  const U_corrected = U.clone();
+  const V_t_corrected = V_t.clone();
   if (determinant(U) < 0) {
-    U.setColumn(0, U.getColumn(0).map(num => -num));
+    U_corrected.setColumn(0, U.getColumn(1))
+    U_corrected.setColumn(1, U.getColumn(0))
   } 
   if (determinant(V_t) < 0) {
-    V_t.setColumn(0, V_t.getColumn(0).map(num => -num));
-  } 
-
-  const zip = (a, b) => a.map((k, i) => [k, b[i]]);
+    V_t_corrected.setColumn(0, V_t.getColumn(1))
+    V_t_corrected.setColumn(1, V_t.getColumn(0))
+  }
 
   if (time <= 1/3) {
     return zip(
-      spherical_interp([1, 0], V_t.getColumn(0), time*3),
-      spherical_interp([0, 1], V_t.getColumn(1), time*3)
+      spherical_interp([1, 0], V_t_corrected.getColumn(0), time*3),
+      spherical_interp([0, 1], V_t_corrected.getColumn(1), time*3)
     );
   } else if (time <= 2/3) {
     return zip(
@@ -645,8 +659,8 @@ function svd_interp(a, b, c, d, time) {
     );
   } else if (time < 1) {
     return zip(
-      spherical_interp(S.mmul(V_t).getColumn(0), U.mmul(S.mmul(V_t)).getColumn(0), (time-2/3)*3),
-      spherical_interp(S.mmul(V_t).getColumn(1), U.mmul(S.mmul(V_t)).getColumn(1), (time-2/3)*3)
+      spherical_interp(S.mmul(V_t).getColumn(0), U_corrected.mmul(S.mmul(V_t)).getColumn(0), (time-2/3)*3),
+      spherical_interp(S.mmul(V_t).getColumn(1), U_corrected.mmul(S.mmul(V_t)).getColumn(1), (time-2/3)*3)
     );
   } else {
     return [
@@ -716,6 +730,9 @@ function spherical_interp(vector1, vector2, time) {
     slerpedDirection[1] * interpolatedMagnitude,
   ];
 
+  if (resultVector.some(Number.isNaN)) {
+    return vector2;
+  }
   return resultVector;
 }
 
