@@ -631,21 +631,23 @@ function svd_interp(a, b, c, d, time) {
     V_t.setColumn(0, V_t.getColumn(0).map(num => -num));
   } 
 
+  const zip = (a, b) => a.map((k, i) => [k, b[i]]);
+
   if (time <= 1/3) {
-    return [
+    return zip(
       spherical_interp([1, 0], V_t.getColumn(0), time*3),
       spherical_interp([0, 1], V_t.getColumn(1), time*3)
-    ]
+    );
   } else if (time <= 2/3) {
-    return [
+    return zip(
       linear_interp(V_t.getColumn(0), S.mmul(V_t).getColumn(0), (time-1/3)*3),
       linear_interp(V_t.getColumn(1), S.mmul(V_t).getColumn(1), (time-1/3)*3),
-    ]
+    );
   } else if (time < 1) {
-    return [
+    return zip(
       spherical_interp(S.mmul(V_t).getColumn(0), U.mmul(S.mmul(V_t)).getColumn(0), (time-2/3)*3),
       spherical_interp(S.mmul(V_t).getColumn(1), U.mmul(S.mmul(V_t)).getColumn(1), (time-2/3)*3)
-    ];
+    );
   } else {
     return [
       [a, c],
