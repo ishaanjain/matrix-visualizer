@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import Image from 'next/image';
-import { eigs, norm, transpose } from 'mathjs';
+import { eigs, norm } from 'mathjs';
+import { Matrix, SingularValueDecomposition, determinant } from 'ml-matrix';
 
 const Canvas = (props) => {
 
@@ -250,11 +251,33 @@ const Canvas = (props) => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d", {willReadFrequently: true});
     context.save();
+
+
+
+    
     // calculate the actual transform values (dependent on the time variable)
-    const time_a = 1+(a-1)*time
-    const time_b = -b*time
-    const time_c = -c*time
-    const time_d = 1+(d-1)*time
+    const [
+      [time_a, time_c],
+      [time_b, time_d]
+    ] = svd_interp(a, b, c, d, time);
+
+    // svd_interp(
+    //   [1, 0], 
+    //   V_t.getColumn(0),
+    //   S.mmul(V_t).getColumn(0), 
+    //   U.mmul(S.mmul(V_t)).getColumn(0),
+    //   [a, b], 
+    //   time
+    // );
+    // svd_interp(
+    //   [0, 1], 
+    //   V_t.getColumn(1),
+    //   S.mmul(V_t).getColumn(1), 
+    //   U.mmul(S.mmul(V_t)).getColumn(1),
+    //   [c, d],
+    //   time
+    // );
+    
 
     // clear the canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -266,11 +289,11 @@ const Canvas = (props) => {
     draw_background_grid(context);
 
     // linearly transform the canvas
-    context.transform(time_a, time_b, time_c, time_d, 0, 0);
+    context.transform(time_a, -time_b, -time_c, time_d, 0, 0);
     
     // draw_foreground_grid needs to (multiple times) call context.restore() and then bring
     // the context back to its transformed state, so we provide it with this callback function
-    const transform_context = () => context.transform(time_a, time_b, time_c, time_d, originX, originY);
+    const transform_context = () => context.transform(time_a, -time_b, -time_c, time_d, originX, originY);
     
     // draw the foreground grid (this grid is linearly transformed along with the image but must keep its linewidth constant)
     draw_foreground_grid(context, transform_context);
@@ -318,8 +341,8 @@ const Canvas = (props) => {
       console.log('eigs() threw an error', error);
     } finally {
       // draw the x and y unit vectors
-      draw_arrow(context, 0, 0, 80*time_a, 80*time_b, "rgb(151, 187, 110)");
-      draw_arrow(context, 0, 0, -80*time_c, -80*time_d, "rgb(239, 131, 101)");
+      draw_arrow(context, 0, 0, 80*time_a, -80*time_b, "rgb(151, 187, 110)");
+      draw_arrow(context, 0, 0, 80*time_c, -80*time_d, "rgb(239, 131, 101)");
 
       // draw the targets that you can drag to change the linear transform matrix
       draw_target(context, a*80, -b*80, target_radius, "rgb(151, 187, 110)")
@@ -589,6 +612,109 @@ function convolution(imageData, kernel) {
   }
 
   return result;
+}
+
+// interpolates between vectors in a way that showcases SVD
+function svd_interp(a, b, c, d, time) {
+  const M = new Matrix([
+    [a, c],
+    [b, d],
+  ]);
+  const SVD = new SingularValueDecomposition(M)
+  const U = SVD.leftSingularVectors;
+  const S = SVD.diagonalMatrix;
+  const V_t = SVD.rightSingularVectors.transpose();
+  if (determinant(U) < 0) {
+    U.setColumn(0, U.getColumn(0).map(num => -num));
+  } 
+  if (determinant(V_t) < 0) {
+    V_t.setColumn(0, V_t.getColumn(0).map(num => -num));
+  } 
+
+  if (time <= 1/3) {
+    return [
+      spherical_interp([1, 0], V_t.getColumn(0), time*3),
+      spherical_interp([0, 1], V_t.getColumn(1), time*3)
+    ]
+  } else if (time <= 2/3) {
+    return [
+      linear_interp(V_t.getColumn(0), S.mmul(V_t).getColumn(0), (time-1/3)*3),
+      linear_interp(V_t.getColumn(1), S.mmul(V_t).getColumn(1), (time-1/3)*3),
+    ]
+  } else if (time < 1) {
+    return [
+      spherical_interp(S.mmul(V_t).getColumn(0), U.mmul(S.mmul(V_t)).getColumn(0), (time-2/3)*3),
+      spherical_interp(S.mmul(V_t).getColumn(1), U.mmul(S.mmul(V_t)).getColumn(1), (time-2/3)*3)
+    ];
+  } else {
+    return [
+      [a, c],
+      [b, d]
+    ];
+  }
+}
+
+// linearly interpolates between two vectors
+function linear_interp(vector1, vector2, time) {
+  // Interpolating between vector1 and vector2
+  const interpolatedVector = [
+    (1 - time) * vector1[0] + time * vector2[0],
+    (1 - time) * vector1[1] + time * vector2[1]
+  ];
+  
+  return interpolatedVector;
+}
+
+// interpolates between two vectors on the surface of a sphere and maintains a constant angular velocity
+function spherical_interp(vector1, vector2, time) {
+  // Compute the magnitudes of vector1 and vector2
+  const mag1 = Math.sqrt(vector1[0] ** 2 + vector1[1] ** 2);
+  const mag2 = Math.sqrt(vector2[0] ** 2 + vector2[1] ** 2);
+
+  // Normalize the input vectors
+  const norm1 = [vector1[0] / mag1, vector1[1] / mag1];
+  const norm2 = [vector2[0] / mag2, vector2[1] / mag2];
+
+  // Compute the dot product between the normalized vectors
+  const dot = norm1[0] * norm2[0] + norm1[1] * norm2[1];
+
+  // Clamp the dot product to avoid precision errors
+  const clampedDot = Math.min(Math.max(dot, -1), 1);
+
+  // Compute the angle between the two normalized vectors
+  const theta = Math.acos(clampedDot) * time;
+
+  // Compute the perpendicular vector to norm1 in the plane of norm1 and norm2
+  const perpendicularVector = [
+    norm2[0] - norm1[0] * clampedDot,
+    norm2[1] - norm1[1] * clampedDot,
+  ];
+
+  // Calculate the magnitude of the perpendicular vector
+  const perpendicularMagnitude = Math.sqrt(perpendicularVector[0] ** 2 + perpendicularVector[1] ** 2);
+
+  // Normalize the perpendicular vector
+  const normalizedPerpendicular = [
+    perpendicularVector[0] / perpendicularMagnitude,
+    perpendicularVector[1] / perpendicularMagnitude,
+  ];
+
+  // Perform slerp between the normalized vectors
+  const slerpedDirection = [
+    norm1[0] * Math.cos(theta) + normalizedPerpendicular[0] * Math.sin(theta),
+    norm1[1] * Math.cos(theta) + normalizedPerpendicular[1] * Math.sin(theta),
+  ];
+
+  // Interpolate between the magnitudes of vector1 and vector2
+  const interpolatedMagnitude = (1 - time) * mag1 + time * mag2;
+
+  // Scale the slerped direction by the interpolated magnitude
+  const resultVector = [
+    slerpedDirection[0] * interpolatedMagnitude,
+    slerpedDirection[1] * interpolatedMagnitude,
+  ];
+
+  return resultVector;
 }
 
 export default Canvas;
