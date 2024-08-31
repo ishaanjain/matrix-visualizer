@@ -636,37 +636,33 @@ function timed_vals_svd(a, b, c, d, time) {
   const S = SVD.diagonalMatrix;
   const V_t = SVD.rightSingularVectors.transpose();
 
-  const U_corrected = U.clone();
-  const V_t_corrected = V_t.clone();
-  if (determinant(U) < 0) {
-    U_corrected.setColumn(0, U.getColumn(1))
-    U_corrected.setColumn(1, U.getColumn(0))
-  } 
-  if (determinant(V_t) < 0) {
-    V_t_corrected.setColumn(0, V_t.getColumn(1))
-    V_t_corrected.setColumn(1, V_t.getColumn(0))
-  }
-
   if (time <= 1/3) {
+    if (determinant(V_t) < 0) {
+      return zip(
+        spherical_interp([1, 0], V_t.getColumn(1), time*3),
+        spherical_interp([0, 1], V_t.getColumn(0), time*3)
+      );
+    }
     return zip(
-      spherical_interp([1, 0], V_t_corrected.getColumn(0), time*3),
-      spherical_interp([0, 1], V_t_corrected.getColumn(1), time*3)
+      spherical_interp([1, 0], V_t.getColumn(0), time*3),
+      spherical_interp([0, 1], V_t.getColumn(1), time*3)
     );
   } else if (time <= 2/3) {
     return zip(
       linear_interp(V_t.getColumn(0), S.mmul(V_t).getColumn(0), (time-1/3)*3),
       linear_interp(V_t.getColumn(1), S.mmul(V_t).getColumn(1), (time-1/3)*3),
     );
-  } else if (time < 1) {
-    return zip(
-      spherical_interp(S.mmul(V_t).getColumn(0), U_corrected.mmul(S.mmul(V_t)).getColumn(0), (time-2/3)*3),
-      spherical_interp(S.mmul(V_t).getColumn(1), U_corrected.mmul(S.mmul(V_t)).getColumn(1), (time-2/3)*3)
-    );
   } else {
-    return [
-      [a, c],
-      [b, d]
-    ];
+    if (determinant(U) < 0) {
+      return zip(
+        spherical_interp(S.mmul(V_t).getColumn(1), [a, b], (time-2/3)*3),
+        spherical_interp(S.mmul(V_t).getColumn(0), [c, d], (time-2/3)*3)
+      );
+    }
+    return zip(
+      spherical_interp(S.mmul(V_t).getColumn(0), [a, b], (time-2/3)*3),
+      spherical_interp(S.mmul(V_t).getColumn(1), [c, d], (time-2/3)*3)
+    );
   }
 }
 
