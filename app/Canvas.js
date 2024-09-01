@@ -436,7 +436,10 @@ const Canvas = (props) => {
       </div>
       <footer className="mb-2 mx-2 flex flex-wrap justify-center">
         <span className="mr-1">
-          Made by <a href="https://x.com/ishaancjain" className="text-slate-600 hover:underline">Ishaan Jain</a> using
+          Made by <a href="https://x.com/ishaancjain" className="text-slate-600 hover:underline">Ishaan Jain</a>,
+        </span>
+        <span className="mr-1">
+          using
           <Image src="React-icon.svg" alt="" width={16} height={16} className="mx-1 inline"></Image>
           React,
           <Image src="Tailwind-icon.svg" alt="" width={16} height={16} className="mx-1 inline"></Image>
