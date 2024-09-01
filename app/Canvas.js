@@ -432,14 +432,20 @@ const Canvas = (props) => {
           </div>
         </div>
       </div>
-      <footer className="m-2 text-center">
-        Made by <a href="https://x.com/ishaancjain" className="text-slate-600 hover:underline">Ishaan Jain</a> using
-        <Image src="React-icon.svg" alt="" width={16} height={16} className="mx-1 inline"></Image>
-        React,
-        <Image src="Tailwind-icon.svg" alt="" width={16} height={16} className="mx-1 inline"></Image>
-        Tailwind, and
-        <Image src="HTML5-icon.svg" alt="" width={16} height={16} className="mx-1 inline"></Image>
-        canvas
+      <footer className="mb-2 mx-2 flex flex-wrap justify-center">
+        <span className="mr-1">
+          Made by <a href="https://x.com/ishaancjain" className="text-slate-600 hover:underline">Ishaan Jain</a> using
+          <Image src="React-icon.svg" alt="" width={16} height={16} className="mx-1 inline"></Image>
+          React,
+          <Image src="Tailwind-icon.svg" alt="" width={16} height={16} className="mx-1 inline"></Image>
+          Tailwind, and
+          <Image src="HTML5-icon.svg" alt="" width={16} height={16} className="mx-1 inline"></Image>
+          canvas.
+        </span>
+        <span className="">
+          Would love <a href="mailto:ishaancj@proton.me" target="_blank" className="text-slate-600 hover:underline">feedback</a>
+          !
+        </span>
       </footer>
     </div>
   );
