@@ -394,11 +394,6 @@ const Canvas = (props) => {
           <div className="flex flex-wrap gap-4 mb-4"> {/*container for hide eigenv, hide img, change img buttons*/}
             <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_unit_circle(!show_unit_circle)}> {show_unit_circle ? 'Hide unit circle' : 'Show unit circle'} </button>
             <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_eigenvectors(!show_eigenvectors)}> {show_eigenvectors ? 'Hide eigenvectors' : 'Show eigenvectors'} </button>
-            <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_image(!show_image)}> {show_image ? 'Hide image' : 'Show image'} </button>
-            <label className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
-              <input hidden type="file" accept="image/*" onChange={e => updateImage(e.target.files)} />
-              Change image
-            </label>
           </div>
           <h2 className="text-xl font-semibold mb-4">Transform Matrix</h2>
           <div className="flex flex-wrap gap-4 mb-4">
@@ -414,6 +409,13 @@ const Canvas = (props) => {
             <input className="border rounded p-2 text-center" type="number" name="d" value={d} onChange={e => set_d(e.target.value)} ></input>
           </div>
           <h2 className="text-xl font-semibold mb-4">Convolution Matrix</h2>
+          <div className="flex gap-4 mb-4">
+            <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_image(!show_image)}> {show_image ? 'Hide image' : 'Show image'} </button>
+            <label className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+              <input hidden type="file" accept="image/*" onChange={e => updateImage(e.target.files)} />
+              Change image
+            </label>
+          </div>
           <div className="flex gap-4 mb-4">
             <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" onClick={convolution_reset}>Reset</button>
             <button className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" onClick={convolution_sharpen}>Sharpen</button>
