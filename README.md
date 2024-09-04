@@ -1,3 +1,3 @@
-# Matrix Visualizer
+# Matrix Playground
 
-[This project](https://the-matrix-visualizer.vercel.app/) lets you interactively explore the way matrix transforms affect images.
+[This app](https://matrixplayground.vercel.app/) lets you interactively play with linear transform matrices and convolution matrices.

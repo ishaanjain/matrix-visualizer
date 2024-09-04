@@ -5,7 +5,7 @@ import { Analytics } from "@vercel/analytics/react"
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'Matrix Visualizer',
+  title: 'Matrix Playground',
   description: 'Explore matrix transformations with our interactive visualizer. Drag vectors, apply convolutions, and see the math in action. Perfect for students and educators.',
 }
 

@@ -360,13 +360,13 @@ const Canvas = (props) => {
               Explore matrix transformations with our interactive visualizer. 
               <br/>
               <br/>
-              Drag vectors using the green/red targets, apply convolutions, and see the math in action.
+              Drag the green/red targets to adjust the linear transform, apply different convolutions, and see the math in action.
               <br/>
               <br/>
               Mobile friendly.
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-center">Matrix Transform Visualizer</h1>
+          <h1 className="text-2xl font-bold text-center">Matrix Playground</h1>
           <h2 className="text-sm text-slate-500 mb-3 text-center">
             Inspired by <a href="https://www.3blue1brown.com" className="hover:underline">3Blue1Brown</a>
           </h2>
@@ -395,7 +395,7 @@ const Canvas = (props) => {
             <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_unit_circle(!show_unit_circle)}> {show_unit_circle ? 'Hide unit circle' : 'Show unit circle'} </button>
             <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={() => set_show_eigenvectors(!show_eigenvectors)}> {show_eigenvectors ? 'Hide eigenvectors' : 'Show eigenvectors'} </button>
           </div>
-          <h2 className="text-xl font-semibold mb-4">Transform Matrix</h2>
+          <h2 className="text-xl font-semibold mb-4">Linear Transform Matrix</h2>
           <div className="flex flex-wrap gap-4 mb-4">
             <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={linear_transform_identity}>Identity</button>
             <button className="bg-gray-500 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded" onClick={linear_transform_shear}>Shear</button>
